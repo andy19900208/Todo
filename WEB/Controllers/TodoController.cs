@@ -13,7 +13,8 @@ namespace WEB.Controllers
 {
     public class TodoController : Controller
     {
-        private List<Task> data = new List<Task>() { 
+        private static int IdCount = 5;
+        private static List<Task> data = new List<Task>() { 
             new Task() { 
                 Id = 1,
                 Content = "Init",
@@ -40,7 +41,6 @@ namespace WEB.Controllers
 
         };
 
-        // GET: TodoController
         public ActionResult Index()
         {
             TodoIndexViewModel vm = new TodoIndexViewModel() {
@@ -50,73 +50,78 @@ namespace WEB.Controllers
             return View(vm);
         }
 
-        // GET: TodoController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
-
-        // GET: TodoController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: TodoController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult SetState(int id, bool[] state)
         {
-            try
+            if (data.Any(a => a.Id == id))
             {
-                return RedirectToAction(nameof(Index));
+                data.First(f => f.Id == id).IsDone = state.Any();
             }
-            catch
-            {
-                return View();
-            }
+
+            return RedirectToAction("Index");
         }
 
-        // GET: TodoController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
 
-        // POST: TodoController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: TodoController/Delete/5
         public ActionResult Delete(int id)
         {
-            return View();
+            if (data.Any(a => a.Id == id))
+            {
+                data.Remove(data.First(f => f.Id == id));
+            }
+
+            return RedirectToAction("Index");
         }
 
-        // POST: TodoController/Delete/5
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Create(string content)
+        {
+            if (!string.IsNullOrEmpty(content))
+            {
+                data.Add(new Task() { 
+                    Id = IdCount++,
+                    Content = content,
+                    IsDone = false
+                });
+            }
+
+            return RedirectToAction("Index");
+        }
+
+
+        public ActionResult Edit(int id)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                return View(new EditViewModel() { task = data.First(f => f.Id == id)});
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction("Index");
+            }
+            
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, string content)
+        {
+            try
+            {
+                data.First(f => f.Id == id).Content = content;
+
+                return RedirectToAction("Index");
             }
             catch
             {
                 return View();
             }
         }
+
+
     }
 }

@@ -1,29 +1,71 @@
 ﻿@model WEB.ViewModels.TodoIndexViewModel
 
+<form action="./Todo/Create" method="post">
+    @Html.AntiForgeryToken()
+    <div class="form-row">
+        <div class="col-1">
+            <label for="txtContent">New Task : </label>
+        </div>
+        <div class="col">
+            <input type="text" class="form-control" id="txtContent" name="content" placeholder="Content">
+        </div>
+        <div class="col-1">
+            <button type="submit" class="btn btn-success">Create</button>
+        </div>
+        
+        
+        
+    </div>
+    
+
+</form>
+
+<br />
 
 <table class="table">
     <tr>
         <th>Id</th>
         <th>Content</th>
         <th></th>
+        <th></th>
+        <th></th>
     </tr>
 
     @foreach (var item in Model.Tasks)
     {
         <tr>
-            <td>
+
+            <td style="width:40px;">
                 @Html.DisplayFor(modelItem => item.Id)
             </td>
+
             <td>
                 @Html.DisplayFor(modelItem => item.Content)
             </td>
-            <td>
-                <input type="checkbox" data-toggle="toggle" 
-                       data-onstyle="primary" data-offstyle="secondary" 
-                       data-on="Done" data-off="Undone" 
-                       @(item.IsDone ? "checked" : "")
-                />
-            <td>
+
+            <td style="width:40px;">
+                <form asp-controller="Todo" asp-action="SetState" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id"/>
+                    <input type="checkbox" data-toggle="toggle" name="state" value="true"
+                           data-onstyle="primary" data-offstyle="secondary"
+                           data-on="Done" data-off="Undone"
+                           @(item.IsDone ? "checked" : "")
+                           onchange="this.form.submit()" />
+                </form>
+            </td>
+
+            <td style="width:40px;">
+                <form form asp-controller="Todo" asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <input type="submit" class="btn btn-danger" value="Delete" />
+                </form>
+            </td>
+
+            <td style="width:40px;">
+                @Html.ActionLink("Edit", "Edit", new { id = item.Id }, new { @class = "btn btn-info" })
+            </td>
 
         </tr>
     }
