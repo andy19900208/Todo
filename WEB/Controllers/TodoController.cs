@@ -8,43 +8,24 @@ using System.Linq;
 
 using WEB.Models;
 using WEB.ViewModels;
+using WEB.Service;
+using WEB.DAL;
 
 namespace WEB.Controllers
 {
     public class TodoController : Controller
     {
-        private static int IdCount = 5;
-        private static List<Task> data = new List<Task>() { 
-            new Task() { 
-                Id = 1,
-                Content = "Init",
-                IsDone = true
-            },
+        readonly TodoService service;
 
-            new Task() {
-                Id = 2,
-                Content = "Easy Sample",
-                IsDone = false
-            },
-
-            new Task() {
-                Id = 3,
-                Content = "DataAccess",
-                IsDone = false
-            },
-
-            new Task() {
-                Id = 4,
-                Content = "Unit Test",
-                IsDone = false
-            },
-
-        };
+        public TodoController(ITaskRepository repo)
+        {
+            service = new TodoService(repo);
+        }
 
         public ActionResult Index()
         {
             TodoIndexViewModel vm = new TodoIndexViewModel() {
-                Tasks = data
+                Tasks = service.GetAll()
             };
 
             return View(vm);
@@ -54,10 +35,7 @@ namespace WEB.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult SetState(int id, bool[] state)
         {
-            if (data.Any(a => a.Id == id))
-            {
-                data.First(f => f.Id == id).IsDone = state.Any();
-            }
+            service.SetState(id, state.Any());
 
             return RedirectToAction("Index");
         }
@@ -67,10 +45,7 @@ namespace WEB.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
         {
-            if (data.Any(a => a.Id == id))
-            {
-                data.Remove(data.First(f => f.Id == id));
-            }
+            service.Delete(id);
 
             return RedirectToAction("Index");
         }
@@ -80,14 +55,7 @@ namespace WEB.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(string content)
         {
-            if (!string.IsNullOrEmpty(content))
-            {
-                data.Add(new Task() { 
-                    Id = IdCount++,
-                    Content = content,
-                    IsDone = false
-                });
-            }
+            service.Create(content);
 
             return RedirectToAction("Index");
         }
@@ -97,7 +65,7 @@ namespace WEB.Controllers
         {
             try
             {
-                return View(new EditViewModel() { task = data.First(f => f.Id == id)});
+                return View(new EditViewModel() { task = service.Get(id) });
             }
             catch (Exception ex)
             {
@@ -112,7 +80,7 @@ namespace WEB.Controllers
         {
             try
             {
-                data.First(f => f.Id == id).Content = content;
+                service.Edit(id, content);
 
                 return RedirectToAction("Index");
             }
